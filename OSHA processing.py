@@ -49,7 +49,7 @@ for thistype in filetypes:
             ending = ""
         else:
             ending = file
-        collection = collection.append(pd.read_csv(thistype + '_' + today + "/osha_" + thistype + str(ending) + ".csv"))
+        collection = collection.append(pd.read_csv(thistype + '_' + today + "/osha_" + thistype + str(ending) + ".csv",low_memory=False))
     collection.to_csv(thistype + '_all.csv')
     shutil.rmtree(thistype + '_' + today)
     os.remove(thistype + '_' + today + '.zip')
