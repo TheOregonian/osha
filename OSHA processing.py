@@ -52,8 +52,9 @@ for thistype in filetypes:
     collection = pd.DataFrame()
     limits = {'inspection':4,'violation_event':9,'violation':12}
     if shorthistory:
+    	limit = limits[thistype] - 1
     	# Eliminate older files in order to conserve memory
-    	del files[0:limits[thistype] - 1]
+    	del files[0:limit]
     for file in files:
     	# There's only one file for accidents, so no suffix
         if thistype[0:8] == 'accident':
