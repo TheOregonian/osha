@@ -26,48 +26,51 @@ yesterday = yesterday.strftime("%Y%m%d")
 base_url = "https://enfxfr.dol.gov/data_catalog/OSHA/osha_"   
 filetypes      = ["accident","accident_abstract","accident_injury","inspection","violation","violation_event","violation_gen_duty_std"]
 for thistype in filetypes:
-    allfile = thistype + '_all.csv'
-    try:
-        fh = open(allfile, 'r')
-        os.remove(allfile)
-    except:
-        print allfile + ' not present to remove'
-    url = base_url + thistype + '_' + today + '.csv.zip'
-    try:
-        filedata = urllib2.urlopen(url)
-    except:
-        url = base_url + thistype + '_' + yesterday + '.csv.zip'
-        try:
-            filedata = urllib2.urlopen(url)
-        except:
-            print "Missing file at " + url
-            continue
-    datatowrite = filedata.read()
-    with open(thistype + '_' + today + '.zip', 'wb') as f:  
-        f.write(datatowrite)
-    zip = zipfile.ZipFile(thistype + '_' + today + '.zip', 'r')
-    zip.extractall(thistype + '_' + today)
-    filecount = len(os.listdir(thistype + '_' + today))
-    files = range(filecount)
-    collection = pd.DataFrame()
-    limits = {'inspection':4,'violation_event':9,'violation':12}
-    if shorthistory:
-    	if thistype in limits.keys():
-	    	limit = limits[thistype] - 1
-    		# Eliminate older files in order to conserve memory
-    		del files[0:limit]
-    for file in files:
-    	# There's only one file for accidents, so no suffix
-        if thistype[0:8] == 'accident':
-            ending = ""
-        # Other types of files end with a number
-        else:
-            ending = file
-        collection = collection.append(pd.read_csv(thistype + '_' + today + "/osha_" + thistype + str(ending) + ".csv",low_memory=False))
-    collection.to_csv(thistype + '_all.csv')
-    shutil.rmtree(thistype + '_' + today)
-    os.remove(thistype + '_' + today + '.zip')
-    
+	print thistype
+	allfile = thistype + '_all.csv'
+	try:
+		fh = open(allfile, 'r')
+		os.remove(allfile)
+	except:
+		print allfile + ' not present to remove'
+	url = base_url + thistype + '_' + today + '.csv.zip'
+	try:
+		filedata = urllib2.urlopen(url)
+	except:
+		url = base_url + thistype + '_' + yesterday + '.csv.zip'
+		try:
+			filedata = urllib2.urlopen(url)
+		except:
+			print "Missing file at " + url
+			continue
+	datatowrite = filedata.read()
+	with open(thistype + '_' + today + '.zip', 'wb') as f:
+		f.write(datatowrite)
+	zip = zipfile.ZipFile(thistype + '_' + today + '.zip', 'r')
+	zip.extractall(thistype + '_' + today)
+	filecount = len(os.listdir(thistype + '_' + today))
+	files = range(filecount)
+	collection = pd.DataFrame()
+	limits = {'inspection':4,'violation_event':9,'violation':12}
+	if shorthistory:
+		if thistype in limits.keys():
+			limit = limits[thistype] - 1
+			print limit
+			# Eliminate older files in order to conserve memory
+			del files[0:limit]
+	for file in files:
+		# There's only one file for accidents, so no suffix
+		if thistype[0:8] == 'accident':
+			ending = ""
+		# Other types of files end with a number
+		else:
+			ending = file
+		collection = collection.append(pd.read_csv(thistype + '_' + today + "/osha_" + thistype + str(ending) + ".csv",low_memory=False))
+	collection.to_csv(thistype + '_all.csv')
+	shutil.rmtree(thistype + '_' + today)
+	os.remove(thistype + '_' + today + '.zip')
+
+quit()    
 
 # Pull up our file showing the ID of the last record processed in the "latest_inspections.csv" file
 # If this is a first run of the app, then no bookmark exists and we run everything.
@@ -90,11 +93,14 @@ if appending:
 oregon_inspections = inspections[(inspections.open_date > '2019-01-01') & (inspections.site_state == 'OR')]
 oregon_inspection_IDs = oregon_inspections['activity_nr']
 violations = pd.read_csv('violation_all.csv')
+# Only keep records with activity_nr greater than the bookmarked record ID from last run
 if appending:
     violations = violations[violations.activity_nr > int(bookmark.top[0])]
+# Isolate the latest violation records
 oregon_violations = pd.merge(oregon_inspection_IDs,violations,on='activity_nr')
 oregon_violation_count = oregon_violations.groupby('activity_nr').count()[['citation_id']]
 oregon_violation_count = oregon_violation_count.rename(columns={'citation_id':'violations'})
+# Add summary data on number of violations to each inspection
 oregon_inspections = pd.merge(oregon_inspections,oregon_violation_count,on='activity_nr',how='left')
 oregon_inspections['violations'].fillna(0, inplace=True)
 oregon_inspections['violations'] = oregon_inspections['violations'].astype(int)
