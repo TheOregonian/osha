@@ -55,7 +55,6 @@ for thistype in filetypes:
 	if shorthistory:
 		if thistype in limits.keys():
 			limit = limits[thistype] - 1
-			print limit
 			# Eliminate older files in order to conserve memory
 			del files[0:limit]
 	for file in files:
@@ -69,8 +68,7 @@ for thistype in filetypes:
 	collection.to_csv(thistype + '_all.csv')
 	shutil.rmtree(thistype + '_' + today)
 	os.remove(thistype + '_' + today + '.zip')
-
-quit()    
+  
 
 # Pull up our file showing the ID of the last record processed in the "latest_inspections.csv" file
 # If this is a first run of the app, then no bookmark exists and we run everything.
@@ -83,12 +81,15 @@ else:
     appending = False
 
 
+####################################################################################
+# Focus in on inspections and violations files
+####################################################################################
+
+# Open inspections up
 inspections = pd.read_csv('inspection_all.csv')
 # Drop all the old records that we've already processed
 if appending:
     inspections = inspections[inspections.activity_nr > int(bookmark.top[0])]
-
-
 # Isolate recent Oregon inspections and violations
 oregon_inspections = inspections[(inspections.open_date > '2019-01-01') & (inspections.site_state == 'OR')]
 oregon_inspection_IDs = oregon_inspections['activity_nr']
