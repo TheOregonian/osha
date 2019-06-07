@@ -179,7 +179,28 @@ oregon_violations.to_csv('latest_violations.csv')
 oregon_inspections = oregon_inspections.fillna('-1')
 counter = 0
 from geopy.geocoders import Bing
-bingkey = "AuNPKK6wEhtJOp2JSz1iQQwqgCptimUiyamkP18Bnz4ycjMaxcFdd1kYEqyWrdxL"
+
+def get_apikey(servicename):
+	import pandas as pd
+	import os
+	if os.path.isfile('/etc/apikeys'):
+		path = '/etc/apikeys'
+	else:
+		if os.path.isfile('apikeys'):
+			path = 'apikeys'
+		else:
+			return False
+	keyfile = pd.read_csv(path)
+	keydict = keyfile.to_dict('records')
+	for row in keydict:
+		if row['service'] == servicename:
+			apikey = row['key']
+			return apikey
+
+bingkey = get_apikey('bing')
+if bingkey == False:
+	print "Could not find necessary API key file."
+	quit()
 
 # Iterate through data, geocoding each row
 for row in oregon_inspections.itertuples():
