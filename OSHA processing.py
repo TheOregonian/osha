@@ -9,6 +9,12 @@ import datetime
 import shutil
 import re
 import geopandas
+
+##################################################################################
+# SET THIS VARIABLE BASED ON WHETHER WE WANT THE FULL HISTORY BACK TO 1973
+##################################################################################
+shorthistory = True
+
 # Basic date info
 now       = datetime.datetime.now()
 yesterday = now - datetime.timedelta(days = 1)
@@ -44,9 +50,15 @@ for thistype in filetypes:
     filecount = len(os.listdir(thistype + '_' + today))
     files = range(filecount)
     collection = pd.DataFrame()
+    limits = {'inspection':4,'violation_event':9,'violation':12}
+    if shorthistory:
+    	# Eliminate older files in order to conserve memory
+    	del files[0:limits[thistype] - 1]
     for file in files:
+    	# There's only one file for accidents, so no suffix
         if thistype[0:8] == 'accident':
             ending = ""
+        # Other types of files end with a number
         else:
             ending = file
         collection = collection.append(pd.read_csv(thistype + '_' + today + "/osha_" + thistype + str(ending) + ".csv",low_memory=False))
