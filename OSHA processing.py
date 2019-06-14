@@ -87,16 +87,10 @@ else:
 
 # Open inspections up
 inspections = pd.read_csv('inspection_all.csv')
-# Drop all the old records that we've already processed
-if appending:
-    inspections = inspections[inspections.activity_nr > int(bookmark.top[0])]
 # Isolate recent Oregon inspections and violations
 oregon_inspections = inspections[(inspections.open_date > '2019-01-01') & (inspections.site_state == 'OR')]
 oregon_inspection_IDs = oregon_inspections['activity_nr']
 violations = pd.read_csv('violation_all.csv')
-# Only keep records with activity_nr greater than the bookmarked record ID from last run
-if appending:
-    violations = violations[violations.activity_nr > int(bookmark.top[0])]
 # Isolate the latest violation records
 oregon_violations = pd.merge(oregon_inspection_IDs,violations,on='activity_nr')
 oregon_violation_count = oregon_violations.groupby('activity_nr').count()[['citation_id']]
@@ -202,6 +196,10 @@ if bingkey == False:
 	print "Could not find necessary API key file."
 	quit()
 
+# Drop all the old records that we've already geocoded
+if appending:
+    oregon_inspections = oregon_inspections[oregon_inspections.activity_nr > int(bookmark.top[0])]
+
 # Iterate through data, geocoding each row
 for row in oregon_inspections.itertuples():
     counter+=1
@@ -224,17 +222,23 @@ for row in oregon_inspections.itertuples():
     except:
         continue
 
+#Dump the geocodes to csv
+locations = pd.DataFrame(locations)
+if appending:
+	with open('addresses.csv', 'a') as f:
+		df.to_csv(f, header=False,encoding='utf-8')
+	# Make entire file of past and present locations available to merge with inspections data
+	locations = pd.read_csv('addresses.csv')
+else:
+	locations.to_csv('addresses.csv',encoding='utf-8')
+
 #Merge the geocodes with  inspection data
 oregon_inspections = pd.merge(oregon_inspections,locations,on='activity_nr',how='left')
 
 # Output to csv
-oregon_inspections.to_csv('latest_inspections.csv')
+oregon_inspections.to_csv('latest_inspections.csv',encoding='utf-8')
 
 # Create a text file noting record ID of where we left off with the last import of data.
 biggest = oregon_inspections.activity_nr.max()
 bookmark = pd.DataFrame({'top':[biggest]})
 bookmark.to_csv('bookmark')
-
-
-
-
