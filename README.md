@@ -22,21 +22,21 @@ bing,YOURKEYHERE
 ```
 You can add other keys and access them by name by invoking the ```get_apikey()``` function defined in ```standards.py```.
 
-## standards.py
+## OSHA standards.py
 
-The ```standards.py``` file is a scraper that compiles a list of numbered OSHA rules that the agency cites when issuing violations that arise from an inspection. The results are dumped in a file called ```standards.csv``` that includes the title and content of each rule. Find the federal standards being scraped here:
+The ```OSHA standards.py``` file is a scraper that compiles a list of numbered OSHA rules that the agency cites when issuing violations that arise from an inspection. The results are dumped in a file called ```standards.csv``` that includes the title and content of each rule. Find the federal standards being scraped here:
 https://www.osha.gov/laws-regs/regulations/standardnumber/
 
 In addition, the scraper pulls Oregon-specific workplace rules into a file called ```state_standards.csv```. The web pages being scraped are here:
 https://osha.oregon.gov/rules/Pages/default.aspx
 
-## processing.py
+## OSHA processing.py
 
 This script downloads all files available on the OSHA enforcement site, unzips them, concatenates them and saves them as big csvs. 
 
 The most interesting element of all these data is the one that tells us what a company did wrong. The column is called "standard" in the OSHA violations file. It is an alphanumeric code corresponding to the rule number in the Code of Federal Regulation or, in the case of Oregon, the Oregon Administrative Rules.
 
-The ```processing.py``` script cleans up and standardizes this alphanumeric code, then joins it to the ```standards.csv``` and ```state_standards.csv``` files to provide a human-readable description of the rule being violated.
+The ```OSHA processing.py``` script cleans up and standardizes this alphanumeric code, then joins it to the ```standards.csv``` and ```state_standards.csv``` files to provide a human-readable description of the rule being violated.
 
 Finally, the script takes the address of the workplace inspected and geocodes it.
 
